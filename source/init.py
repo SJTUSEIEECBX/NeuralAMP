@@ -10,10 +10,10 @@ parser.add_argument('T', type=int, help='Length of pilot sequence')
 parser.add_argument('--ra', type=bool, default=False, help='Whether to use random number of active users.')
 parser.add_argument('--snr', type=float, default=20, help='Signal to noise ratio')
 parser.add_argument('--lr', type=float, default=1e-3, help='Learning rate')
-parser.add_argument('--tb', type=int, default=1e5, help='Training batch size')
-parser.add_argument('--vb', type=int, default=1e4, help='Validation batch size')
-parser.add_argument('--mb', type=int, default=2e3, help='Mini-batch size')
-parser.add_argument('--ep', type=int, default=1.5e3, help='Number of training epochs')
+parser.add_argument('--tb', type=int, default=int(1e5), help='Training batch size')
+parser.add_argument('--vb', type=int, default=int(1e4), help='Validation batch size')
+parser.add_argument('--mb', type=int, default=int(2e3), help='Mini-batch size')
+parser.add_argument('--ep', type=int, default=int(1.5e3), help='Number of training epochs')
 parser.add_argument('--ly', type=int, default=4, help='Number of layers')
 parser.add_argument('--up', type=float, default=3, help='Rate of unbalanced BCE loss')
 
@@ -24,6 +24,7 @@ params = {
     'Ka': args.Ka,  # number of active users
     'random_active': args.ra,  # whether to use random number of active users
     'N_bs': args.N,  # number of receiver antennas (base station)
+    'N_ms': 1,  # number of antennas per user
     'T': args.T,  # time overhead (length of pilot sequence)
     'fc': 2e9,  # frequency of carrier
     'sigma2alpha': 1, # average power of path
@@ -48,6 +49,8 @@ params.update({'P_set':  P_set})
 nvar = 10 ** (-params['snr'] / 10)
 params.update({'nvar': nvar})
 
-str_params = 'K={}, Ka={}, N={}, T={}, snr={}, random active={}'.format(params['K'], params['Ka'], params['N_bs'],
-                                                                        params['T'], params['snr'],
-                                                                        params['random_active'])
+str_params = 'K{}Ka{}N{}T{}snr{}randomActive{}'.format(params['K'], params['Ka'], params['N_bs'],params['T'],
+                                                        params['snr'],params['random_active'])
+
+data_params = 'K{}Ka{}N{}randomActive{}'.format(params['K'], params['Ka'], params['N_bs'], params['T'],
+                                                params['snr'], params['random_active'])

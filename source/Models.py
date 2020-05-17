@@ -16,20 +16,22 @@ class NonlinearEstimator(nn.Module):
         self.left_weight_imag = nn.Parameter(torch.FloatTensor(N, N))
         # self.right_weight_real = nn.Parameter(torch.FloatTensor(K, K))
         # self.right_weight_imag = nn.Parameter(torch.FloatTensor(K, K))
-        # self.bias_real = nn.Parameter(torch.FloatTensor(N, K))
-        # self.bias_imag = nn.Parameter(torch.FloatTensor(N, K))
+        self.bias_real = nn.Parameter(torch.FloatTensor(N, K))
+        self.bias_imag = nn.Parameter(torch.FloatTensor(N, K))
         self.activate_real = activate()
         self.activate_imag = activate()
         nn.init.eye_(self.left_weight_real)
         nn.init.eye_(self.left_weight_imag)
         # nn.init.eye_(self.right_weight_real)
         # nn.init.eye_(self.right_weight_imag)
-        # nn.init.zeros_(self.bias_real)
-        # nn.init.zeros_(self.bias_imag)
+        nn.init.zeros_(self.bias_real)
+        nn.init.zeros_(self.bias_imag)
 
     def forward(self, X_real, X_imag):
         Y_real, Y_imag = cpxmm(self.left_weight_real, self.left_weight_imag, X_real, X_imag)
         # Y_real, Y_imag = cpxmm(X_real, X_imag, self.right_weight_real, self.right_weight_imag)
+        Y_real = Y_real + self.bias_real
+        Y_imag = Y_imag + self.bias_imag
         if self.activate_real != None:
             Y_real = self.activate_real(Y_real)
             Y_imag = self.activate_imag(Y_imag)
@@ -43,20 +45,22 @@ class LinearSteper(nn.Module):
         self.left_weight_imag = nn.Parameter(torch.FloatTensor(T, N))
         self.right_weight_real = nn.Parameter(torch.FloatTensor(K, T))
         self.right_weight_imag = nn.Parameter(torch.FloatTensor(K, T))
-        # self.bias_real = nn.Parameter(torch.FloatTensor(N, T))
-        # self.bias_imag = nn.Parameter(torch.FloatTensor(N, T))
+        self.bias_real = nn.Parameter(torch.FloatTensor(T, T))
+        self.bias_imag = nn.Parameter(torch.FloatTensor(T, T))
         self.activate_real = activate()
         self.activate_imag = activate()
         nn.init.eye_(self.left_weight_real)
         nn.init.eye_(self.left_weight_imag)
         nn.init.eye_(self.right_weight_real)
         nn.init.eye_(self.right_weight_imag)
-        # nn.init.zeros_(self.bias_real)
-        # nn.init.zeros_(self.bias_imag)
+        nn.init.zeros_(self.bias_real)
+        nn.init.zeros_(self.bias_imag)
 
     def forward(self, X_real, X_imag):
         Y_real, Y_imag = cpxmm(self.left_weight_real, self.left_weight_imag, X_real, X_imag)
         Y_real, Y_imag = cpxmm(Y_real, Y_imag, self.right_weight_real, self.right_weight_imag)
+        Y_real = Y_real + self.bias_real
+        Y_imag = Y_imag + self.bias_imag
         if self.activate_real != None:
             Y_real = self.activate_real(Y_real)
             Y_imag = self.activate_imag(Y_imag)
@@ -156,7 +160,7 @@ class NeuralAMP_AutoEncoder(nn.Module):
         # print(torch.isnan(H_hat_real + H_hat_imag).sum().item(), 'nan in H', sep='\t')
         H_abs = (H_hat_real ** 2 + H_hat_imag ** 2).sqrt()
         act = H_abs.mean(dim=1)
-        act = (act + 1).log()
+        # act = (act + 1).log()
         act = act / act.max(dim=1, keepdim=True)[0]
         # act = self.output(act)
         # act = self.activedetect(H_hat_real, H_hat_imag)
